@@ -1,0 +1,1061 @@
+{
+  "name": "Inflatie koppeling los",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "output": "fields",
+        "fields": [
+          "hasAttachments"
+        ],
+        "filters": {},
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.microsoftOutlookTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2120,
+        1320
+      ],
+      "id": "4b716df1-54c5-488f-92b8-beeae1ecefe2",
+      "name": "Microsoft Outlook Trigger",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "jsCFuka3ISJks8sI",
+          "name": "Microsoft Outlook account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -1920,
+        1320
+      ],
+      "id": "dc781297-0350-4cc8-9dbf-9583a81230e9",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=🔎 Stap 1: Analyse van de brief\nZoek in {{ $json.text }} naar:\n\n✅ Inflatiepercentages (per product)\n\n✅ Vermelde productnamen\n\n✅ Land van herkomst leverancier\n\n✅ E-mailadres leverancier\n\n✅ Naam leverancier (indien beschikbaar)\n\nNoteer per product:\n\nNaam product\n\nOpgegeven inflatiepercentage (string of getal) \n\nGef output als 'product'\nGeef naam product als 'name'\nGeef inflatie percentage als 'inflation_percentage'"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1720,
+        1320
+      ],
+      "id": "5a6bc694-9b02-4123-a5c7-e92d0d294923",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=vind de juiste categorie voor {{ $json.name }}. kies maar 1 categorie per product.\n\nRetourneer ook in JSON format de indexaties van februari 2025. Retourneer enkel het percentage in een string en niet 'feb_2025:' oid ervoor.\n\nGebruik de Supabase Vector Store voor elke koppeling van product met category. doe dit met RAG\n\nGeef de output terug als geldige plain text. Gebruik géén aanhalingstekens rond het hele object, en geen escape-tekens. ",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "\nJe bent een AI die altijd geldige plain text retourneert.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1500,
+        1080
+      ],
+      "id": "fb9e5a04-d92e-4791-b33c-430ac06767c7",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1700,
+        1780
+      ],
+      "id": "3c82019f-2503-4568-809e-8dbdde6d6abc",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "CPI",
+        "toolDescription": "=Kies de best passende categorie uit de onderstaande lijst. Kies altijd de categorie die het meest specifiek overeenkomt met de query.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 8,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        1320,
+        1640
+      ],
+      "id": "62112565-b36e-43ae-a2af-cf0569f4c0d6",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "nkvDksnSw6FfY20K",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1660,
+        1820
+      ],
+      "id": "06db980e-c048-49a4-a19f-21c970e3c101",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "CPI"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2160,
+        1680
+      ],
+      "id": "9fa36663-1d0e-415f-8ba6-4082d9a2f4ad",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6e6b2bfc-e6a4-478e-9bbe-e148ce6df06d",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -400,
+        1320
+      ],
+      "id": "a5474e9d-82c4-4b0a-8eff-9090aecefa87",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Haal de producten array uit de OpenAI-output\nconst products = $json.message.content.products;\n\nreturn products.map(product => ({\n  json: {\n    name: product.name,\n    inflation_percentage: product.inflation_percentage\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1140,
+        1320
+      ],
+      "id": "262557f9-8e16-4c9d-9bc1-395de8c81491",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"product\": \"string\",\n  \"category\": \"string\",\n  \"indexatie_categorie\": \"number\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1980,
+        1500
+      ],
+      "id": "84a55197-665b-4eb0-b78b-a9300cd03428",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Vergelijk de inflatie van het product \"{{ $json.name }}\" ({{ $json.inflation_percentage }}%) met de indexatie voor de categorie {{ $json.category }}\n\nAnalyseer of de inflatie hoger is dan de indexatie in februari 2025. Geef één duidelijke conclusie in maximaal 2 zinnen.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2200,
+        500
+      ],
+      "id": "583215c0-336f-4c70-bd99-901cf0dcaa61",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "Percentages",
+        "toolDescription": "=Vind de juiste indexaties van de productcategorie  {{ $json.output.category }}",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        2640,
+        1080
+      ],
+      "id": "a9c9a3e4-8fb8-41f7-822a-bd1f193c61ef",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "nkvDksnSw6FfY20K",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2100,
+        1080
+      ],
+      "id": "0dcfbdc5-9725-4d1a-a86d-45ee18869848",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Hz7Yt9EoYIqD1lQA",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "Prijs"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2440,
+        1040
+      ],
+      "id": "b993f7f3-28d1-4664-b1d1-c906387c157f",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2820,
+        1340
+      ],
+      "id": "567b0635-344d-42fb-ad66-c7835c026a2e",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aebf4134-2cbc-45e9-baea-c261cd4d8cae",
+              "name": "Category",
+              "value": "={{ $json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "0e3774d0-abc7-49cb-96ad-2dc815825fcf",
+              "name": "Indexatie",
+              "value": "={{ $json.indexatie_categorie }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -220,
+        1060
+      ],
+      "id": "efd3803b-65c7-416f-af82-3a76520f4c32",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        40,
+        800
+      ],
+      "id": "a891fa9c-eb11-43c4-a609-4648d0a4551f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Deze agent genereert een bar chart die de opgegeven inflatie percentages vergelijkt met de indexatie percentages.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        4340,
+        1740
+      ],
+      "id": "c1cef6a9-21a0-4330-962a-12677dfba7a5",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Maak deze call om de grafiek te genereren. ",
+        "method": "POST",
+        "url": "https://quickchart.io/chart/create",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chart\": {\n    \"type\": \"bar\",\n    \"data\": {\n      \"labels\": [\"{{ $json.output.product }}\"],\n      \"datasets\": [\n        {\n          \"label\": \"Inflatie %\",\n          \"data\": [{{ parseFloat($('OpenAI').item.json.message.content.products[0].inflation_percentage) }}]\n        },\n        {\n          \"label\": \"Indexatie %\",\n          \"data\": [{{ parseFloat($json.output.indexatie_categorie) }}]\n        }\n      ]\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        5180,
+        2160
+      ],
+      "id": "28c37831-ae7f-4874-b8e5-6ff6794fe956",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4100,
+        2000
+      ],
+      "id": "875be4cb-5f12-4b41-87aa-7330895cac8e",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "Grafiek"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        4760,
+        2100
+      ],
+      "id": "b9931480-5408-46ab-b33a-731c7e45a69e",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      labels: $input.all().map(item => item.json.product || item.json.name || 'Onbekend'),\n      inflation: $input.all().map(item => {\n        const val = item.json.inflation_percentage;\n        if (!val) return null;\n        return parseFloat(val.toString().replace(',', '.').replace('%', ''));\n      }),\n      indexatie: $input.all().map(item => {\n        const val = item.json.indexatie_categorie;\n        if (!val) return null;\n        return parseFloat(val.toString().replace(',', '.'));\n      })\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        780
+      ],
+      "id": "5ee866f8-a014-4028-8533-fe9d8896be38",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  chart_url: $json.url\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3940,
+        1860
+      ],
+      "id": "7a5d8f35-60f3-431d-b39b-671e50ddd7b5",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"chart_url\": \"https://quickchart.io/chart/render/...\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4540,
+        2100
+      ],
+      "id": "3fa3bd59-64f2-40e1-866f-cfe934625cee",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const afwijkingen = [];\n\nfor (const item of $input.all()) {\n  const naam = item.json.name || 'Onbekend product';\n  const inflatieStr = item.json.inflation_percentage || '';\n  const indexatieStr = item.json.Indexatie || item.json.indexatie_categorie || item.json.Category || '';\n\n  const inflatie = parseFloat(inflatieStr.toString().replace(',', '.').replace('%', ''));\n  const indexatie = parseFloat(indexatieStr.toString().replace(',', '.'));\n\n  if (inflatie > indexatie) {\n    afwijkingen.push({\n      json: {\n        name: naam,\n        inflatie: inflatie,\n        indexatie: indexatie\n      }\n    });\n  }\n}\n\nreturn afwijkingen;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        800
+      ],
+      "id": "eab29876-5960-4dc5-870d-ea946bb33ff8",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Je krijgt een lijst van producten waarvan het inflatiepercentage hoger ligt dan de indexatiegrens.\n\nMaak een nette HTML-e-mail in het Nederlands met:\n- Een korte zakelijke inleiding.\n- Een tabel met per rij:\n  - Productnaam\n  - Inflatiepercentage\n  - Indexatiepercentage\n- Een afsluiting waarin je aanmoedigt contact op te nemen met de leverancier indien nodig.\n\nHier is de JSON-array:\n{{ JSON.stringify($json.producten, null, 2) }}\n\nRetourneer alleen de HTML van de e-mail, zonder uitleg of tekst eromheen.\n"
+            }
+          ]
+        },
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        760,
+        800
+      ],
+      "id": "16891ef8-88be-482f-b108-fc675c47a372",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "Inflatie",
+        "bodyContent": "={{ $json.choices[0].message.content }}",
+        "additionalFields": {
+          "bodyContentType": "html"
+        }
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        800
+      ],
+      "id": "63b495f9-1e2c-4b37-9caf-a049acbd136b",
+      "name": "Microsoft Outlook",
+      "webhookId": "6435fbed-4967-4819-bb2f-a71ca83200cf",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "jsCFuka3ISJks8sI",
+          "name": "Microsoft Outlook account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verwerk alle afwijkingen in één array\nconst producten = $input.all().map(item => ({\n  name: item.json.name,\n  inflatie: item.json.inflatie,\n  indexatie: item.json.indexatie\n}));\n\nreturn [{\n  json: {\n    producten\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        800
+      ],
+      "id": "c00d571f-b0ab-4f28-82e9-ca684673018c",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        1400
+      ],
+      "id": "62a29b8e-7e5b-43d9-9a56-49eed22c7fc9",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=vind de juiste categorie voor {{ $json.name }}. kies maar 1 categorie per product.\n\nRetourneer ook in JSON format de indexaties van februari 2025. Retourneer enkel het percentage in een string en niet 'feb_2025:' oid ervoor.\n\nGebruik de Supabase Vector Store voor elke koppeling van product met category. doe dit met RAG\n\nGeef de output terug als geldige plain text. Gebruik géén aanhalingstekens rond het hele object, en geen escape-tekens. Gebruik de volgende stijl voor je antwoord:\n{\\n \"Kantoorartikelen\": {\\n \"categorie\": \"Diverse goederen en diensten\",\\n \"indexatie_feb_2025\": \"0.48\"\\n }\\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        0,
+        1340
+      ],
+      "id": "98ff6c68-76a1-418e-8feb-dd29c65e6ce4",
+      "name": "OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "CPI",
+        "toolDescription": "Kies de best passende categorie uit de onderstaande lijst. Kies altijd de categorie die het meest specifiek overeenkomt met de query.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        1600
+      ],
+      "id": "d3352584-903c-4f6e-b6aa-bb204e6b464f",
+      "name": "Supabase Vector Store2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "nkvDksnSw6FfY20K",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        1800
+      ],
+      "id": "86500fa7-d875-4383-b9f6-1b6d63c4299b",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "qPqWYS4xuifh6IB4",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const raw = item.json.message?.content ?? '';\n  let product = null;\n  let category = null;\n  let indexatie = null;\n\n  try {\n    // Probeer JSON-structuur eruit te halen met regex\n    const match = raw.match(/\\{[\\s\\S]*\\}/); // pakt eerste JSON-achtige blok\n    if (match) {\n      const parsed = JSON.parse(match[0]);\n\n      // Pak de eerste (en enige) key als productnaam\n      const keys = Object.keys(parsed);\n      if (keys.length === 1) {\n        product = keys[0];\n        const inner = parsed[product];\n        if (inner && typeof inner === 'object') {\n          category = inner.categorie ?? null;\n\n          // Zoek numerieke waarde of parsebare string\n          const indexKey = Object.keys(inner).find(k => k.toLowerCase().includes('2025') || k.includes('index'));\n          if (indexKey) {\n            indexatie = parseFloat(inner[indexKey]);\n          }\n        }\n      }\n    }\n  } catch (err) {\n    // fallback\n    return { json: { error: \"Parsing failed\", raw } };\n  }\n\n  return {\n    json: {\n      product,\n      category,\n      indexatie_categorie: indexatie\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        1340
+      ],
+      "id": "e8801d27-8509-402d-a8ad-b002bbc4679d",
+      "name": "Code5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Microsoft Outlook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Microsoft Outlook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store2": {
+      "ai_tool": [
+        [
+          {
+            "node": "OpenAI2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI2": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2322d393-7f4f-4908-82d7-78136fc5a67b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a956d1ee51c6af711a27de32eaf8dbd23c932f73676b38834f98f650d76db46f"
+  },
+  "id": "XDZ5pXRuZrCzAcyH",
+  "tags": []
+}
