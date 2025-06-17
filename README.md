@@ -1,4 +1,4 @@
-# 📊 n8n Inflatie-analyse Workflow
+# 📊 Inflatie-analyse Workflow
 
 Deze n8n-workflow automatiseert de verwerking van inflatie-informatie uit PDF-brieven die als bijlage binnenkomen via Microsoft Outlook. De workflow extraheert productnamen en inflatiepercentages, koppelt deze via een Supabase Vector Store aan productcategorieën, vergelijkt ze met indexatiepercentages, en genereert indien nodig grafieken en e-mails.
 
