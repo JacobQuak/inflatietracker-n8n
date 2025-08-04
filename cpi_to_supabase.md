@@ -136,9 +136,3 @@ Na het uitvoeren van de workflow staat je CPI/PPI dataset als vector data klaar 
 - Trendanalyse op basis van natuurlijke taal
 
 ---
-
-## 📘 Vervolg
-
-Wil je dit integreren met een chatbot of AI-dashboard? Dan kun je met Supabase’s **pgvector** en **OpenAI API** zoeken op semantische gelijkenis via cosine similarity.
-
-> 🔗 Tip: Combineer met een `Text Splitter` node als je langere passages of documenten verwerkt.
