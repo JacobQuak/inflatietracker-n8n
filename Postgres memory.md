@@ -1,56 +1,62 @@
-# 🧠 Postgres Chat Memory instellen en onderhouden in Supabase
+# 🧠 Automatisch aanmaken van Postgres Chat Memory in n8n met Supabase
+
+Als je een connectie hebt met een PostgreSQL-database (zoals Supabase) in n8n, dan hoef je de `chat_memory`-tabel meestal **niet handmatig** aan te maken.
 
 ---
 
-## 📦 Wat is Postgres Chat Memory?
+## ✅ Voorwaarden
 
-De `Postgres Chat Memory` node in n8n houdt gesprekken (context) bij voor een AI-agent. Denk hierbij aan:
+De `Postgres Chat Memory` node in n8n maakt automatisch de tabel aan als:
 
-- Vorige vragen & antwoorden  
-- Interne taken of bewerkingen  
-- AI-instructies die ‘onthouden’ moeten worden tussen stappen  
-
-Deze geheugenopslag gebeurt in een **PostgreSQL-tabel** in Supabase.
+- Je een werkende PostgreSQL-verbinding hebt (bijv. Supabase)
+- De opgegeven tabel nog niet bestaat
+- Je de workflow uitvoert met correcte instellingen
 
 ---
 
-## ✅ 1. Postgres Chat Memory instellen
+## 📦 Wat wordt automatisch aangemaakt?
 
-### 📘 Voorbereiding in Supabase
+Bij het eerste gebruik van de node genereert n8n een tabel met de volgende structuur:
 
-Maak een nieuwe tabel aan met de volgende structuur:
+| Kolomnaam     | Type       | Opmerking                    |
+|---------------|------------|------------------------------|
+| `id`          | UUID       | Primaire sleutel             |
+| `session_id`  | TEXT       | Groepeert de sessies         |
+| `type`        | TEXT       | `human` of `ai`              |
+| `content`     | TEXT       | Inhoud van het bericht       |
+| `created_at`  | TIMESTAMP  | Automatisch tijdstip         |
 
-| Kolomnaam   | Type      | Opmerking                   |
-|-------------|-----------|-----------------------------|
-| `id`        | UUID      | Primary key                 |
-| `session_id`| text      | Groepeert de sessies        |
-| `type`      | text      | ‘human’ of ‘ai’             |
-| `content`   | text      | Inhoud van het bericht      |
-| `created_at`| timestamp | Tijdstip van opslag         |
-
-➡️ Je kunt eventueel extra velden toevoegen zoals `metadata` (`jsonb`) als je dat nodig hebt.
+> ℹ️ De structuur kan worden uitgebreid met `metadata` (JSONB) indien je dat zelf toevoegt.
 
 ---
 
-### 🔗 Configuratie in n8n
+## 🔧 Hoe stel je het in?
 
-- **Node**: `Postgres Chat Memory`
-- Verbind met je Supabase database (via credentials)
-- Geef het volgende op:
+In de `Postgres Chat Memory` node:
 
-  - **Tabelnaam**: `chat_memory` (of jouw eigen naam)
-  - **Session ID**: bijvoorbeeld `={{ $runId }}` of `={{ $json.userId }}`
-  - **Velden toewijzen**:
-    - `inputField`: AI-invoer of prompt
-    - `outputField`: AI-uitvoer (response)
+- **Table name**: `chat_memory` (of een eigen naam)
+- **Session ID**: bijv. `={{ $runId }}` of `={{ $json.userId }}`
+- **inputField**: de AI-invoer (bijv. prompt)
+- **outputField**: het AI-antwoord
 
-🔁 Nu worden alle interacties automatisch opgeslagen bij het uitvoeren van de workflow.
+De node gebruikt deze info om automatisch de opslag te beheren.
+
+---
+
+## 🔍 Controleer de tabel in Supabase
+
+1. Ga naar je Supabase dashboard
+2. Navigeer naar **Table Editor**
+3. Zoek naar `chat_memory`
+4. Bekijk de kolommen en data
+
+---
 
 ---
 
 ## 🧹 2. Geheugen automatisch opschonen
 
-Om te voorkomen dat het geheugen blijft groeien, is het goed om verouderde berichten periodiek te verwijderen.
+Om te voorkomen dat het geheugen vol raakt, is het goed om verouderde berichten periodiek te verwijderen.
 
 ### ⏰ Periodiek legen (bijvoorbeeld elke week)
 
