@@ -40,6 +40,26 @@ Gebruik een `Manual Trigger` of bijvoorbeeld een geplande trigger (elke week of 
 - File ID: gebruik de ID van het CPI-bestand in OneDrive
 - Output: binaire data (`data`)
 
+### 🔍 Hoe achterhaal je een bestand-ID in OneDrive via n8n?
+
+Als je de **file ID** van een OneDrive-bestand nodig hebt (bijvoorbeeld voor een download-operatie), kun je deze eenvoudig ophalen met de **Search** node.
+
+#### 📦 Node: `Microsoft OneDrive`
+
+**Instellingen**:
+
+- **Operation**: `Search`
+- **Query**: De naam of een deel van de bestandsnaam (bijv. `CPI` of `document2025.pdf`)
+- **Return All**: `true` (optioneel, als je meerdere matches verwacht)
+
+#### 🧾 Output
+
+De node retourneert een lijst van bestanden. Elk item bevat o.a.:
+
+- `"id"` → Dit is de **file ID** die je nodig hebt
+- `"name"` → De bestandsnaam
+- `"parentReference"` → Locatie/pad in OneDrive
+
 ---
 
 ### 3. Extract from File
